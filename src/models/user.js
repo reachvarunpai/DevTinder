@@ -15,10 +15,20 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
         trim: true,
+        validate(value) {
+            if (!validator.isEmail(value)) {
+                throw new Error("Invalid email address: " + value);   
+            }
+        },
     },
     password: {
         type: String,
         required: true,
+         validate(value){
+            if (!validator.isStrongPassword(value)) {
+                throw new Error("Enter a strong password " + value);
+            }
+        },
     },
     age: {
         type: Number,
@@ -29,13 +39,17 @@ const userSchema = new mongoose.Schema({
         validate(value){
             if (!["male", "female", "others"].includes(value)) {
                 throw new Error("Gender data not valid");
-
             }
         },
     },
     photoUrl: {
         type: String,
-        default: "https://tse4.mm.bing.net/th/id/OIP.9zsJAmSYTJEWaxoDi8uYigHaGl?pid=Api&P=0&h=180"
+        default: "https://tse4.mm.bing.net/th/id/OIP.9zsJAmSYTJEWaxoDi8uYigHaGl?pid=Api&P=0&h=180",
+    validate(value) {
+            if (!validator.isURL(value)) {
+                throw new Error("Invalid email address: " + value);   
+            }
+        },
     },
     about: {
         type: String,
