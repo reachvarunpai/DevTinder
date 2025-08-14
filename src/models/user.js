@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
             }
         },
     },
-    photoURL: {
+    photoUrl: {
         type: String,
         default: "https://tse4.mm.bing.net/th/id/OIP.9zsJAmSYTJEWaxoDi8uYigHaGl?pid=Api&P=0&h=180"
     },
