@@ -59,14 +59,20 @@ userRouter.get("/feed", userAuth, async (req, res) => {
     try {
         const loggedInUser = req.user;
 
+        const page = parseInt(req.query.page) || 1;
+        let limit = parseInt(req.query.limit) || 10;
+        limit = limit > 50 ? 50 : limit;
+        const skip = (page - 1) * limit;
+
+
         const connectionRequests = await ConnectionRequest.find({
             $or: [{ fromUserId: loggedInUser._id }, { toUserId: loggedInUser._id }],
-        }).select("fromUserId toUserId");  // ✅ fixed: no commas
+        }).select("fromUserId toUserId");  
 
         const hideUsersFromFeed = new Set();
         connectionRequests.forEach((req) => {
-            if (req.fromUserId) hideUsersFromFeed.add(req.fromUserId.toString());  // ✅ safe check
-            if (req.toUserId) hideUsersFromFeed.add(req.toUserId.toString());      // ✅ safe check
+            if (req.fromUserId) hideUsersFromFeed.add(req.fromUserId.toString());  
+            if (req.toUserId) hideUsersFromFeed.add(req.toUserId.toString());      
         });
 
         const users = await User.find({
@@ -74,7 +80,9 @@ userRouter.get("/feed", userAuth, async (req, res) => {
                 { _id: { $nin: Array.from(hideUsersFromFeed) } },
                 { _id: { $ne: loggedInUser._id } },
             ],
-        }).select("firstName lastName photoUrl age gender about skills"); // ✅ fixed: no commas
+        }).select("firstName lastName photoUrl age gender about skills")
+        .skip(skip)
+        .limit(limit); 
 
         res.send(users);
     } catch (err) {
