@@ -21,14 +21,14 @@ const userSchema = new mongoose.Schema({
         trim: true,
         validate(value) {
             if (!validator.isEmail(value)) {
-                throw new Error("Invalid email address: " + value);   
+                throw new Error("Invalid email address: " + value);
             }
         },
     },
     password: {
         type: String,
         required: true,
-         validate(value){
+        validate(value) {
             if (!validator.isStrongPassword(value)) {
                 throw new Error("Enter a strong password " + value);
             }
@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema({
     },
     gender: {
         type: String,
-        validate(value){
+        validate(value) {
             if (!["male", "female", "others"].includes(value)) {
                 throw new Error("Gender data not valid");
             }
@@ -49,9 +49,9 @@ const userSchema = new mongoose.Schema({
     photoUrl: {
         type: String,
         default: "https://tse4.mm.bing.net/th/id/OIP.9zsJAmSYTJEWaxoDi8uYigHaGl?pid=Api&P=0&h=180",
-    validate(value) {
+        validate(value) {
             if (!validator.isURL(value)) {
-                throw new Error("Invalid email address: " + value);   
+                throw new Error("Invalid photo URL: " + value);
             }
         },
     },
@@ -68,26 +68,19 @@ const userSchema = new mongoose.Schema({
 }
 );
 
+// 🔑 JWT generator
 userSchema.methods.getJWT = async function () {
     const user = this;
-
     const token = await jwt.sign({ _id: user._id }, "DEV@Tinder$790", {
-                expiresIn: "7d"
+        expiresIn: "7d",
     });
-
     return token;
 };
 
+// 🔑 Password validation
 userSchema.methods.validatePassword = async function (passwordInputByUser) {
     const user = this;
-    const passwordHash = user.password;
-
-    const isPasswordValid = await bcrypt.compare(
-        passwordInputByUser,
-        passwordHash
-    );
-
-    return isPasswordValid;
+    return await bcrypt.compare(passwordInputByUser, user.password);
 };
-module.exports = mongoose.model("User", userSchema);
 
+module.exports = mongoose.model("User", userSchema);

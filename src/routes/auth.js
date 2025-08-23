@@ -17,7 +17,7 @@ authRouter.post("/signup", async (req, res) => {
     firstName,
     lastName,
     emailId,
-    password: passwordHash
+    password: passwordHash,
    });
    
     await user.save();
@@ -28,30 +28,29 @@ authRouter.post("/signup", async (req, res) => {
 });
 
 authRouter.post("/login", async (req, res) => {
-    try {
-        const { emailId, password } = req.body;
+  try {
+    const { emailId, password } = req.body;
+    const user = await User.findOne({ emailId });
 
-        const user = await User.findOne({ emailId: emailId });
-        if (!user) {
-            throw new Error("Invalid Credentials");
-        }
-        const isPasswordValid = await user.validatePassword(password);
+    if (!user) {
+      throw new Error("Invalid Credentials");
+    }
+    const isPasswordValid = await user.validatePassword(password);
+    if (!isPasswordValid) {
+      throw new Error("Invalid Credentials");
+    }
 
-        if(isPasswordValid) {
-
-        const token = await user.getJWT();
-
-            res.cookie("token", token, {
-                expires: new Date(Date.now() + 8 * 3600000),
-            });
-            res.send("login Successfull!!!");
-        }
-        else {
-            throw new Error("Invalid Credentials")
-        }
-        } catch (err) {
-    res.status(400).send("ERROR :" + err.message);    
-   }
+    const token = await user.getJWT();
+   res.cookie("token", token, {
+  httpOnly: false,      // set to false if you want to see it in DevTools
+  secure: false,        // true if using HTTPS, false for localhost
+  sameSite: "none",      // required for cross-origin cookies
+  expires: new Date(Date.now() + 8 * 3600000), // 8 hours
+});
+    res.send(user);
+  } catch (err) {
+    res.status(400).send("ERROR: " + err.message);
+  }
 });
 
 authRouter.post("/logout", async (req, res) => {
